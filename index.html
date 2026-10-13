@@ -1,0 +1,499 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Twenty · Preview</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700&family=Instrument+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{--ink:#14202b;--paper:#f3f5f7;--card:#fff;--line:#d9dee4;--muted:#5a6672;--blue:#2d4bf0;--blue-ink:#fff;--amber:#9a5b00;--amber-bg:#fff3dc;--green:#17703f;--green-bg:#e3f5ea;--red:#a8231d;--red-bg:#fde8e6;
+--display:"Bricolage Grotesque",ui-sans-serif,system-ui,sans-serif;--body:"Instrument Sans",ui-sans-serif,system-ui,sans-serif}
+@media (prefers-color-scheme:dark){:root{--ink:#e9eef3;--paper:#0e151c;--card:#16202a;--line:#2a3743;--muted:#9aa8b5;--blue:#8da0ff;--blue-ink:#0e151c;--amber:#ffc66b;--amber-bg:#3a2c10;--green:#6fdc9f;--green-bg:#12301f;--red:#ff9b94;--red-bg:#3a1714}}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;font:16px/1.55 var(--body);color:var(--ink);background:var(--paper)}
+h1,h2,h3{font-family:var(--display);font-weight:700;line-height:1.1;margin:0;letter-spacing:-.02em}
+h1{font-size:clamp(2rem,6vw,3rem)} h2{font-size:1.25rem} h3{font-size:1.05rem}
+p{margin:0}
+a{color:inherit}
+button,input,select{font:inherit;color:inherit}
+:focus-visible{outline:3px solid var(--blue);outline-offset:2px}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+.skip{position:absolute;left:-999px;top:.5rem;background:var(--card);padding:.5rem 1rem;border-radius:8px;z-index:50}.skip:focus{left:.5rem}
+.top{position:sticky;top:0;z-index:10;background:color-mix(in srgb,var(--paper) 92%,transparent);backdrop-filter:blur(8px);border-bottom:1px solid var(--line)}
+.top-in{max-width:960px;margin:0 auto;padding:.6rem 1rem;display:flex;align-items:center;gap:1rem;flex-wrap:wrap}
+.brand{display:flex;align-items:center;gap:.55rem;font:700 1.35rem var(--display);letter-spacing:-.03em;text-decoration:none}
+.brand svg{width:26px;height:26px}
+.nav{display:flex;gap:.25rem;margin-left:auto;align-items:center;flex-wrap:wrap}
+.nav a{padding:.5rem .8rem;border-radius:8px;text-decoration:none;font-weight:500;color:var(--muted);min-height:44px;display:inline-flex;align-items:center}
+.nav a:hover{color:var(--ink)} .nav a[aria-current=page]{color:var(--ink);background:var(--card);box-shadow:inset 0 0 0 1px var(--line)}
+.who{font-size:.9rem;color:var(--muted);padding-left:.5rem}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:.5rem;min-height:44px;padding:.55rem 1.1rem;border-radius:10px;border:1px solid var(--line);background:var(--card);font-weight:600;cursor:pointer;white-space:nowrap;text-decoration:none}
+.btn:hover:not(:disabled){border-color:var(--ink)}
+.btn.primary{background:var(--blue);border-color:var(--blue);color:var(--blue-ink)}
+.btn.primary:hover:not(:disabled){filter:brightness(1.08);border-color:var(--blue)}
+.btn.quiet{border-color:transparent;background:transparent;color:var(--muted)}
+.btn:disabled{opacity:.55;cursor:not-allowed}
+.btn.sm{padding:.4rem .8rem;font-size:.95rem}
+main{max-width:960px;margin:0 auto;padding:1.75rem 1rem 4rem;outline:none}
+.head{display:flex;flex-direction:column;gap:.5rem;margin-bottom:1.25rem}
+.head p{color:var(--muted);max-width:52ch}
+.days{display:flex;gap:.5rem;overflow-x:auto;padding:.25rem .1rem 1rem;margin:0 -.1rem;scrollbar-width:thin}
+.day{flex:0 0 auto;min-width:64px;min-height:64px;padding:.4rem .7rem;border:1px solid var(--line);background:var(--card);border-radius:12px;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;line-height:1.2}
+.day b{font:700 1.2rem var(--display)} .day span{font-size:.8rem;color:var(--muted)}
+.day[aria-pressed=true]{background:var(--ink);color:var(--paper);border-color:var(--ink)} .day[aria-pressed=true] span{color:inherit;opacity:.8}
+.day-label{font:700 .95rem var(--display);color:var(--muted);margin:1.5rem 0 .6rem}
+.row{display:grid;grid-template-columns:92px 1fr auto;gap:.5rem 1.25rem;align-items:center;background:var(--card);border:1px solid var(--line);border-radius:16px;padding:1rem 1.15rem;margin-bottom:.75rem}
+.time{font:700 2rem/1 var(--display);letter-spacing:-.04em}
+.time small{display:block;font:500 .8rem var(--body);color:var(--muted);letter-spacing:0;margin-top:.3rem}
+.mats{display:grid;grid-template-columns:repeat(10,1fr);gap:5px;max-width:300px;margin-bottom:.55rem}
+.mat{aspect-ratio:1/1.5;border-radius:4px;border:1.5px solid var(--line);transition:background .25s,border-color .25s}
+.mat.on{background:var(--ink);border-color:var(--ink)} .mat.me{background:var(--blue);border-color:var(--blue)}
+.state{font-weight:600} .state.warn{color:var(--amber)} .state.ok{color:var(--green)}
+.sub{color:var(--muted);font-size:.92rem}
+.ticket{display:inline-flex;align-items:center;gap:.6rem;margin-top:.5rem;padding:.3rem .75rem;border:1.5px dashed var(--blue);border-radius:8px}
+.ticket .code{font:700 1.3rem ui-monospace,Menlo,monospace;letter-spacing:.14em}
+.ticket small{color:var(--muted)}
+.err{color:var(--red);font-weight:500;margin-top:.4rem}
+.pill{display:inline-block;padding:.1rem .6rem;border-radius:99px;font-size:.85rem;font-weight:600;background:var(--line)}
+.pill.ok{background:var(--green-bg);color:var(--green)} .pill.warn{background:var(--amber-bg);color:var(--amber)} .pill.bad{background:var(--red-bg);color:var(--red)}
+@media (max-width:640px){.row{grid-template-columns:72px 1fr;padding:.9rem}.row .act{grid-column:1/-1}.row .act .btn{width:100%}.time{font-size:1.6rem}}
+.notice{padding:2rem 1rem;text-align:center;border:1px dashed var(--line);border-radius:16px;color:var(--muted)}
+.notice b{display:block;color:var(--ink);font:700 1.1rem var(--display);margin-bottom:.25rem}
+.skeleton{height:96px;border-radius:16px;background:linear-gradient(90deg,var(--line),transparent,var(--line));background-size:200% 100%;animation:sh 1.4s infinite;opacity:.5;margin-bottom:.75rem}
+@keyframes sh{to{background-position:-200% 0}}
+label{display:block;font-weight:600;margin:1rem 0 .35rem}
+input,select{width:100%;min-height:46px;padding:.55rem .8rem;border-radius:10px;border:1px solid var(--line);background:var(--card)}
+input[aria-invalid=true]{border-color:var(--red);box-shadow:0 0 0 1px var(--red)}
+.field-err{color:var(--red);font-size:.9rem;min-height:1.2em;margin-top:.25rem}
+.panel{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:1.25rem}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:1rem}
+@media (max-width:760px){.grid2{grid-template-columns:1fr}}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:.75rem}
+.table-wrap{overflow-x:auto}
+table{border-collapse:collapse;width:100%;min-width:420px}
+th{text-align:left;font-size:.85rem;color:var(--muted);font-weight:600}
+th,td{padding:.6rem .5rem;border-bottom:1px solid var(--line);vertical-align:middle}
+td .code{font:700 1rem ui-monospace,Menlo,monospace;letter-spacing:.1em}
+.result{margin-top:.9rem;padding:.8rem 1rem;border-radius:12px}
+.result.ok{background:var(--green-bg);color:var(--green)} .result.bad{background:var(--red-bg);color:var(--red)}
+.big-code{font:700 1.6rem ui-monospace,Menlo,monospace;letter-spacing:.3em;text-transform:uppercase;text-align:center}
+.stub{display:grid;grid-template-columns:1fr auto;gap:.5rem 1rem;align-items:center;background:var(--card);border:1px solid var(--line);border-radius:16px;padding:1rem 1.15rem;margin-bottom:.75rem}
+.stub .code{font:700 1.7rem ui-monospace,Menlo,monospace;letter-spacing:.16em;color:var(--blue)}
+.stub.dim{opacity:.7}
+.auth{display:grid;grid-template-columns:1.1fr 1fr;min-height:100vh}
+.auth-art{background:#14202b;color:#f3f5f7;padding:2.5rem;display:flex;flex-direction:column;justify-content:space-between;gap:2rem}
+.auth-art .brand{color:inherit}
+.auth-art h1{font-size:clamp(2.2rem,5vw,3.6rem);max-width:12ch}
+.auth-art p{opacity:.8;max-width:34ch;margin-top:1rem}
+.art-mats{display:grid;grid-template-columns:repeat(10,1fr);gap:8px;max-width:420px}
+.art-mats i{aspect-ratio:1/1.5;border-radius:5px;border:2px solid rgba(255,255,255,.28)}
+.art-mats i.f{background:#f3f5f7;border-color:#f3f5f7;animation:fill .4s both}
+.art-mats i.y{background:#8da0ff;border-color:#8da0ff;animation:fill .4s both}
+@keyframes fill{from{background:transparent;border-color:rgba(255,255,255,.28)}}
+.auth-form{padding:2.5rem 1.5rem;display:flex;align-items:center;justify-content:center}
+.auth-box{width:100%;max-width:380px;outline:none}
+.seg{display:grid;grid-template-columns:1fr 1fr;background:var(--line);border-radius:12px;padding:4px;margin:1.25rem 0 .5rem}
+.seg button{min-height:42px;border:0;border-radius:9px;background:transparent;font-weight:600;cursor:pointer;color:var(--muted)}
+.seg button[aria-pressed=true]{background:var(--card);color:var(--ink);box-shadow:0 1px 2px rgba(0,0,0,.15)}
+.demo{margin-top:1.5rem;padding-top:1rem;border-top:1px solid var(--line)}
+.demo p{font-size:.9rem;color:var(--muted);margin-bottom:.5rem}.demo .btn{margin:0 .4rem .4rem 0}
+@media (max-width:820px){.auth{grid-template-columns:1fr;min-height:0}.auth-art{padding:1.5rem}.art-mats,.auth-art p{display:none}.auth-form{padding:1.5rem 1rem 3rem}}
+#toast{position:fixed;left:50%;bottom:1.25rem;transform:translateX(-50%);z-index:40;display:flex;flex-direction:column;gap:.5rem;width:min(92vw,420px)}
+.t{padding:.75rem 1rem;border-radius:12px;background:var(--ink);color:var(--paper);font-weight:500;box-shadow:0 8px 24px rgba(0,0,0,.25)}
+.t.bad{background:var(--red);color:#fff}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+<div id="app"></div>
+<div id="toast" role="status" aria-live="polite"></div>
+<script>
+const DEMO = true;
+const $ = (s, r = document) => r.querySelector(s);
+const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const pad = (n) => String(n).padStart(2, '0');
+const POLL_MS = 5000;
+class ApiError extends Error { constructor(e, status) { super(e.message); this.code = e.code; this.details = e.details; this.status = status; } }
+
+let token = localStorage.getItem('token');
+let me = JSON.parse(localStorage.getItem('me') || 'null');
+/*API_START*/
+// PREVIEW ONLY: an in-browser stand-in for the real server so the page works without a backend.
+const MOCK = (() => {
+  const KEY = 'twenty-preview-v2', H = 3600000, AL = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+  const code = () => Array.from({ length: 6 }, () => AL[Math.floor(Math.random() * 32)]).join('');
+  const ymdL = (t) => { const d = new Date(t); return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`; };
+  const at = (off, h) => { const d = new Date(); d.setHours(h, 0, 0, 0); d.setDate(d.getDate() + off); return d.getTime(); };
+  let db;
+  function seed() {
+    const s = { n: 100, users: [], sessions: [], bookings: [], waitlist: [], day: ymdL(Date.now()) };
+    const u = (name, email, pw, role = 'member') => { const x = { id: ++s.n, name, email, pw, role }; s.users.push(x); return x; };
+    const admin = u('Gym Admin', 'admin@gym.test', 'AdminPass123', 'admin'), alice = u('Alice Member', 'alice@gym.test', 'MemberPass123'), bob = u('Bob Member', 'bob@gym.test', 'MemberPass123');
+    const names = ['Priya', 'Rahul', 'Meera', 'Arjun', 'Sana', 'Kabir', 'Isha', 'Dev', 'Nisha', 'Vikram', 'Anaya', 'Rohan', 'Tara', 'Karan', 'Zoya', 'Aditya', 'Diya', 'Imran', 'Lata', 'Neel'];
+    const fill = names.map((n, i) => u(n + ' Kapoor'.replace('Kapoor', ['Shah', 'Rao', 'Iyer', 'Das', 'Khan'][i % 5]), `${n.toLowerCase()}@mail.test`, 'x'));
+    const sess = (t) => { const x = { id: s.sessions.length + 1, starts_at: t, date: ymdL(t), hour: new Date(t).getHours(), capacity: 20 }; s.sessions.push(x); return x; };
+    const book = (se, user, extra = {}) => s.bookings.push({ id: s.bookings.length + 1, session_id: se.id, user_id: user.id, status: 'confirmed', code: code(), checked_in_at: null, ...extra });
+    const nowH = new Date(); nowH.setMinutes(0, 0, 0);
+    const live = sess(nowH.getTime()); [alice, bob, ...fill.slice(0, 7)].forEach((x) => book(live, x));
+    sess(nowH.getTime() + 2 * H); sess(nowH.getTime() + 3 * H);
+    sess(at(1, 7)); sess(at(1, 9)); const few = sess(at(1, 18)); fill.slice(0, 18).forEach((x) => book(few, x));
+    const full = sess(at(1, 19)); fill.forEach((x) => book(full, x)); s.waitlist.push({ id: 1, session_id: full.id, user_id: bob.id });
+    sess(at(2, 7)); sess(at(2, 18)); sess(at(3, 12)); sess(at(4, 8)); sess(at(5, 17));
+    return s;
+  }
+  const load = () => { try { const x = JSON.parse(localStorage.getItem(KEY)); if (x && x.day === ymdL(Date.now())) return x; } catch {} return seed(); };
+  const save = () => localStorage.setItem(KEY, JSON.stringify(db));
+  const err = (status, code_, message, details) => { throw new ApiError({ code: code_, message, details }, status); };
+  const seats = (id) => db.bookings.filter((b) => b.session_id === id && b.status === 'confirmed').length;
+  const view = (s, uid) => {
+    const mine = db.bookings.find((b) => b.session_id === s.id && b.user_id === uid && b.status === 'confirmed');
+    const wl = db.waitlist.filter((w) => w.session_id === s.id), idx = wl.findIndex((w) => w.user_id === uid);
+    return { id: s.id, date: s.date, hour: s.hour, starts_at: s.starts_at, capacity: s.capacity, seats_left: s.capacity - seats(s.id), started: s.starts_at <= Date.now(),
+      my_booking: mine ? { id: mine.id, code: mine.code } : null, waitlist_position: idx >= 0 ? idx + 1 : null, waitlist_size: wl.length };
+  };
+  const promote = (s) => { while (s.starts_at > Date.now() && seats(s.id) < s.capacity) { const w = db.waitlist.find((x) => x.session_id === s.id); if (!w) break; db.waitlist = db.waitlist.filter((x) => x !== w); db.bookings.push({ id: db.bookings.length + 1, session_id: s.id, user_id: w.user_id, status: 'confirmed', code: code(), checked_in_at: null }); } };
+  return async function (path, method, body) {
+    await new Promise((r) => setTimeout(r, 350));
+    db = load();
+    const [p, qs] = path.split('?'), q = new URLSearchParams(qs || ''), m = (re) => p.match(re);
+    if (p === '/auth/login') {
+      const u = db.users.find((x) => x.email === (body.email || '').toLowerCase());
+      if (!u || u.pw !== body.password) err(401, 'invalid_credentials', 'Incorrect email or password.');
+      return { token: 'demo-' + u.id, user: { id: u.id, name: u.name, email: u.email, role: u.role } };
+    }
+    if (p === '/auth/register') {
+      const email = (body.email || '').toLowerCase();
+      if (db.users.some((x) => x.email === email)) err(409, 'email_taken', 'That email is already registered.');
+      const u = { id: ++db.n, name: body.name, email, pw: body.password, role: 'member' }; db.users.push(u); save();
+      return { token: 'demo-' + u.id, user: { id: u.id, name: u.name, email, role: 'member' } };
+    }
+    const user = db.users.find((x) => 'demo-' + x.id === token); if (!user) err(401, 'unauthenticated', 'Log in again.');
+    const admin = () => { if (user.role !== 'admin') err(403, 'forbidden', 'Admins only.'); };
+    let r;
+    if (p === '/sessions' && method === 'GET') {
+      const list = db.sessions.filter((s) => (q.get('date') ? s.date === q.get('date') : s.starts_at + H > Date.now())).sort((a, b) => a.starts_at - b.starts_at);
+      r = { sessions: list.map((s) => view(s, user.id)) };
+    } else if (p === '/sessions' && method === 'POST') {
+      admin(); const t = new Date(body.date + 'T00:00:00'); t.setHours(body.hour); const ts = t.getTime();
+      if (ts <= Date.now()) err(422, 'validation_error', 'Session must start in the future.');
+      if (db.sessions.some((s) => s.starts_at === ts)) err(409, 'slot_taken', 'A session already starts at that time.');
+      const x = { id: db.sessions.length + 1, starts_at: ts, date: ymdL(ts), hour: body.hour, capacity: 20 }; db.sessions.push(x); r = { session: x };
+    } else if ((x = m(/^\/sessions\/(\d+)\/bookings$/))) {
+      const s = db.sessions.find((y) => y.id === +x[1]); if (!s) err(404, 'not_found', 'Session not found.');
+      if (s.starts_at <= Date.now()) err(409, 'session_started', 'This session has already started.');
+      if (db.bookings.some((b) => b.session_id === s.id && b.user_id === user.id && b.status === 'confirmed')) err(409, 'already_booked', 'You already have a booking for this session.');
+      if (seats(s.id) >= s.capacity) err(409, 'session_full', 'This session is full. Someone just took the last mat.');
+      const b = { id: db.bookings.length + 1, session_id: s.id, user_id: user.id, status: 'confirmed', code: code(), checked_in_at: null };
+      db.bookings.push(b); db.waitlist = db.waitlist.filter((w) => !(w.session_id === s.id && w.user_id === user.id)); r = { booking: b };
+    } else if ((x = m(/^\/sessions\/(\d+)\/waitlist$/))) {
+      const s = db.sessions.find((y) => y.id === +x[1]); if (!s) err(404, 'not_found', 'Session not found.');
+      const has = db.waitlist.find((w) => w.session_id === s.id && w.user_id === user.id);
+      if (method === 'POST') {
+        if (seats(s.id) < s.capacity) err(409, 'seats_available', 'Mats are free, book one instead.');
+        if (has) err(409, 'already_waitlisted', 'You are already on the waitlist.');
+        db.waitlist.push({ id: Date.now(), session_id: s.id, user_id: user.id }); r = { session: view(s, user.id) };
+      } else { if (!has) err(404, 'not_found', 'Waitlist entry not found.'); db.waitlist = db.waitlist.filter((w) => w !== has); r = { left: true }; }
+    } else if ((x = m(/^\/bookings\/(\d+)$/)) && method === 'DELETE') {
+      const b = db.bookings.find((y) => y.id === +x[1] && y.user_id === user.id); if (!b) err(404, 'not_found', 'Booking not found.');
+      const s = db.sessions.find((y) => y.id === b.session_id);
+      if (b.status === 'cancelled') err(409, 'already_cancelled', 'Booking is already cancelled.');
+      if (s.starts_at <= Date.now()) err(409, 'session_started', 'You cannot cancel after the session has started.');
+      b.status = 'cancelled'; promote(s); r = { cancelled: true };
+    } else if (p === '/bookings/mine') {
+      const j = (b) => { const s = db.sessions.find((y) => y.id === b.session_id); return { id: b.id, code: b.code, status: b.status, checked_in_at: b.checked_in_at, session_id: s.id, date: s.date, hour: s.hour, starts_at: s.starts_at }; };
+      r = { bookings: db.bookings.filter((b) => b.user_id === user.id).map(j).sort((a, b) => b.starts_at - a.starts_at),
+        waitlist: db.waitlist.filter((w) => w.user_id === user.id).map((w) => { const s = db.sessions.find((y) => y.id === w.session_id); return { session_id: s.id, date: s.date, hour: s.hour, starts_at: s.starts_at, position: db.waitlist.filter((z) => z.session_id === s.id).findIndex((z) => z === w) + 1 }; }) };
+    } else if ((x = m(/^\/admin\/sessions\/(\d+)\/bookings$/))) {
+      admin(); const s = db.sessions.find((y) => y.id === +x[1]); if (!s) err(404, 'not_found', 'Session not found.');
+      r = { session: view(s, 0), bookings: db.bookings.filter((b) => b.session_id === s.id).map((b) => { const u = db.users.find((z) => z.id === b.user_id); return { id: b.id, status: b.status, code: b.code, checked_in_at: b.checked_in_at, name: u.name, email: u.email }; }) };
+    } else if (p === '/admin/checkin') {
+      admin(); const b = db.bookings.find((y) => y.code === String(body.code).toUpperCase()); if (!b) err(404, 'not_found', 'No booking has that code.');
+      const s = db.sessions.find((y) => y.id === b.session_id), u = db.users.find((z) => z.id === b.user_id), t = Date.now();
+      if (b.status === 'cancelled') err(409, 'booking_cancelled', 'That booking was cancelled.');
+      if (b.checked_in_at) err(409, 'already_checked_in', `${u.name} is already checked in.`);
+      if (t < s.starts_at || t >= s.starts_at + H) err(409, 'outside_session_hour', 'This code only works during its session hour.');
+      b.checked_in_at = t; r = { member: { name: u.name, email: u.email }, session: { id: s.id, date: s.date, hour: s.hour } };
+    } else err(404, 'not_found', 'Route not found.');
+    save(); return r;
+  };
+})();
+let x;
+const request = (path, method, body) => MOCK(path, method, body);
+/*API_END*/
+
+async function api(path, method = 'GET', body) {
+  try { return await request(path, method, body); }
+  catch (e) { if (e.status === 401 && token) logout(); throw e; }
+}
+function setAuth(d) { token = d.token; me = d.user; localStorage.setItem('token', token); localStorage.setItem('me', JSON.stringify(me)); }
+function logout() { token = null; me = null; localStorage.removeItem('token'); localStorage.removeItem('me'); location.hash = '#/login'; }
+function toast(msg, bad) {
+  const t = document.createElement('div'); t.className = 't' + (bad ? ' bad' : ''); t.textContent = msg;
+  $('#toast').append(t); setTimeout(() => t.remove(), 4000);
+}
+
+const hourLabel = (h) => `${pad(h)}:00`;
+function dayName(d) {
+  const today = new Date(); today.setHours(0, 0, 0, 0);
+  const t = new Date(d + 'T00:00:00'); const diff = Math.round((t - today) / 86400000);
+  if (diff === 0) return 'Today'; if (diff === 1) return 'Tomorrow';
+  return t.toLocaleDateString(undefined, { weekday: 'long', day: 'numeric', month: 'long' });
+}
+const shortDate = (d) => new Date(d + 'T00:00:00').toLocaleDateString(undefined, { weekday: 'short', day: 'numeric', month: 'short' });
+const ymd = (dt) => `${dt.getFullYear()}-${pad(dt.getMonth() + 1)}-${pad(dt.getDate())}`;
+const ordinal = (n) => { const s = ['th', 'st', 'nd', 'rd'], v = n % 100; return n + (s[(v - 20) % 10] || s[v] || s[0]); };
+
+const app = $('#app');
+let pollTimer = null, pending = 0;
+const ROUTES = { '/login': { public: true }, '/sessions': {}, '/bookings': {}, '/admin': { admin: true } };
+
+function shell(inner, path) {
+  const link = (p, t) => `<a href="#${p}" ${path === p ? 'aria-current="page"' : ''}>${t}</a>`;
+  app.innerHTML = `<header class="top"><div class="top-in">
+    <a class="brand" href="#/sessions">${logo()}twenty</a>
+    <nav class="nav" aria-label="Main">${link('/sessions', 'Sessions')}${link('/bookings', 'My bookings')}${me.role === 'admin' ? link('/admin', 'Admin') : ''}
+    <span class="who">${esc(me.name)}</span><button class="btn quiet sm" id="logout">Log out</button></nav></div></header>
+    <main id="main" tabindex="-1">${inner}</main>`;
+  $('#logout').onclick = logout;
+}
+const logo = () => `<svg viewBox="0 0 26 26" aria-hidden="true"><g fill="currentColor">${[0, 1, 2].map((r) => [0, 1].map((c) => `<rect x="${c * 13 + 1}" y="${r * 8.5 + 1}" width="11" height="6" rx="2"/>`).join('')).join('')}</g></svg>`;
+
+function router() {
+  clearInterval(pollTimer); pollTimer = null;
+  const path = location.hash.slice(1) || '/sessions';
+  const r = ROUTES[path];
+  if (!r) return void (location.hash = '#/sessions');
+  if (!r.public && !token) return void (location.hash = '#/login');   // client guards; the server enforces them again
+  if (r.public && token) return void (location.hash = '#/sessions');
+  if (r.admin && me?.role !== 'admin') return void (location.hash = '#/sessions');
+  ({ '/login': loginPage, '/sessions': sessionsPage, '/bookings': bookingsPage, '/admin': adminPage })[path]();
+  $('#main')?.focus({ preventScroll: true });
+}
+window.addEventListener('hashchange', router);
+const startPolling = (fn) => { pollTimer = setInterval(() => { if (!pending && !document.hidden) fn(); }, POLL_MS); };
+const notice = (title, text, retry) => `<div class="notice"><b>${esc(title)}</b>${esc(text)}${retry ? '<div style="margin-top:1rem"><button class="btn" id="retry">Try again</button></div>' : ''}</div>`;
+const skeleton = () => '<div aria-hidden="true"><div class="skeleton"></div><div class="skeleton"></div><div class="skeleton"></div></div><p class="sr">Loading</p>';
+
+function loginPage() {
+  let mode = 'login';
+  const showErr = (errs) => {
+    for (const f of ['name', 'email', 'password']) { const el = $('#' + f); if (!el) continue; $('#' + f + '-e').textContent = errs[f] ? 'Problem: ' + errs[f] : ''; el.setAttribute('aria-invalid', !!errs[f]); }
+  };
+  const submit = async (payload) => {
+    const btn = $('#submit'); if (btn) btn.disabled = true;
+    try { setAuth(await api(mode === 'register' ? '/auth/register' : '/auth/login', 'POST', payload)); location.hash = '#/sessions'; }
+    catch (e) { showErr(e.details || {}); $('#form-e').textContent = 'Problem: ' + e.message; }
+    finally { if (btn) btn.disabled = false; }
+  };
+  const draw = () => {
+    const reg = mode === 'register';
+    const mats = Array.from({ length: 20 }, (_, i) => `<i class="${i < 13 ? (i === 12 ? 'y' : 'f') : ''}" style="animation-delay:${0.3 + i * 0.07}s"></i>`).join('');
+    app.innerHTML = `<div class="auth"><section class="auth-art"><a class="brand" href="#/login">${logo()}twenty</a>
+      <div><h1>Twenty mats. One hour. Your spot.</h1><p>Book an hourly session, get a code, show it at the door.</p></div>
+      <div class="art-mats" aria-hidden="true">${mats}</div></section>
+      <section class="auth-form"><main class="auth-box" id="main" tabindex="-1">
+        <h2>${reg ? 'Create your account' : 'Welcome back'}</h2>
+        <div class="seg" role="group" aria-label="Choose form"><button type="button" data-m="login" aria-pressed="${!reg}">Log in</button><button type="button" data-m="register" aria-pressed="${reg}">Register</button></div>
+        <form id="f" novalidate>
+          ${reg ? `<label for="name">Full name</label><input id="name" autocomplete="name" aria-describedby="name-e"><p class="field-err" id="name-e"></p>` : ''}
+          <label for="email">Email</label><input id="email" type="email" autocomplete="email" aria-describedby="email-e"><p class="field-err" id="email-e"></p>
+          <label for="password">Password</label><input id="password" type="password" autocomplete="${reg ? 'new-password' : 'current-password'}" aria-describedby="password-e"><p class="field-err" id="password-e"></p>
+          ${reg ? '<p class="sub">At least 8 characters.</p>' : ''}
+          <p class="field-err" id="form-e" role="alert"></p>
+          <button class="btn primary" id="submit" style="width:100%;margin-top:.5rem">${reg ? 'Create account' : 'Log in'}</button>
+        </form>
+        ${DEMO ? `<div class="demo"><p>Preview mode, no server needed. Pick an account:</p>
+          <button class="btn sm" data-demo="admin@gym.test|AdminPass123">Admin</button><button class="btn sm" data-demo="alice@gym.test|MemberPass123">Member (Alice)</button><button class="btn sm" data-demo="bob@gym.test|MemberPass123">Member (Bob)</button></div>` : ''}
+      </main></section></div>`;
+    app.querySelectorAll('[data-m]').forEach((b) => b.onclick = () => { mode = b.dataset.m; draw(); });
+    app.querySelectorAll('[data-demo]').forEach((b) => b.onclick = () => { const [e, p] = b.dataset.demo.split('|'); mode = 'login'; submit({ email: e, password: p }); });
+    $('#f').onsubmit = (ev) => {
+      ev.preventDefault();
+      const v = { name: $('#name')?.value.trim(), email: $('#email').value.trim(), password: $('#password').value };
+      const errs = {};
+      if (reg && !v.name) errs.name = 'Enter your name.';
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v.email)) errs.email = 'Enter a valid email address, like name@example.com.';
+      if (!v.password) errs.password = 'Enter your password.'; else if (reg && v.password.length < 8) errs.password = 'Use at least 8 characters.';
+      showErr(errs); if (Object.keys(errs).length) return void $('[aria-invalid="true"]')?.focus();
+      submit(reg ? v : { email: v.email, password: v.password });
+    };
+  };
+  draw();
+}
+
+let sessions = [], sState = 'loading', sErr = '', dateFilter = '', flash = {};
+function sessionsPage() {
+  const days = Array.from({ length: 7 }, (_, i) => { const d = new Date(); d.setDate(d.getDate() + i); return d; });
+  shell(`<div class="head"><h1>Book a mat</h1><p>Hourly sessions with twenty mats each. Pick a day, grab a mat, and your check-in code appears right away.</p></div>
+    <div class="days" role="group" aria-label="Filter by day">
+      <button class="day" data-d="" aria-pressed="${!dateFilter}"><b>All</b><span>upcoming</span></button>
+      ${days.map((d) => `<button class="day" data-d="${ymd(d)}" aria-pressed="${dateFilter === ymd(d)}"><b>${d.getDate()}</b><span>${d.toLocaleDateString(undefined, { weekday: 'short' })}</span></button>`).join('')}</div>
+    <div id="list" aria-live="polite"></div>`, '/sessions');
+  $('.days').onclick = (e) => {
+    const b = e.target.closest('.day'); if (!b) return;
+    dateFilter = b.dataset.d; document.querySelectorAll('.day').forEach((x) => x.setAttribute('aria-pressed', x === b)); loadSessions();
+  };
+  $('#list').onclick = onSessionAction;
+  loadSessions(); startPolling(() => loadSessions(true));
+}
+async function loadSessions(quiet) {
+  if (!quiet) { sState = 'loading'; drawSessions(); }
+  try { sessions = (await api('/sessions' + (dateFilter ? `?date=${dateFilter}` : ''))).sessions; sState = 'ok'; }
+  catch (e) { if (!quiet || sState !== 'ok') { sState = 'error'; sErr = e.message; } }
+  drawSessions();
+}
+function drawSessions() {
+  const list = $('#list'); if (!list) return;
+  const a = document.activeElement, focus = a?.dataset?.act ? `[data-act="${a.dataset.act}"][data-id="${a.dataset.id}"]` : null;
+  if (sState === 'loading') list.innerHTML = skeleton();
+  else if (sState === 'error') { list.innerHTML = notice('Could not load sessions', sErr, true); $('#retry').onclick = () => loadSessions(); }
+  else if (!sessions.length) list.innerHTML = notice('No sessions here yet', dateFilter ? 'Nothing is scheduled for this day. Try another day or view all upcoming sessions.' : 'The gym has not scheduled any upcoming sessions.');
+  else {
+    let last = '', html = '';
+    for (const s of sessions) { if (s.date !== last) { html += `<h2 class="day-label">${esc(dayName(s.date))}</h2>`; last = s.date; } html += sessionRow(s); }
+    list.innerHTML = html;
+  }
+  if (focus) $(focus, list)?.focus();
+}
+function sessionRow(s) {
+  const taken = s.capacity - s.seats_left, full = s.seats_left <= 0, id = s.id;
+  const mats = Array.from({ length: s.capacity }, (_, i) => `<i class="mat ${i < taken ? 'on' : ''} ${s.my_booking && i === taken - 1 ? 'me' : ''}"></i>`).join('');
+  let state, act = '', extra = '';
+  if (s.my_booking) {
+    state = '<span class="state ok">You are in</span>';
+    extra = `<div class="ticket"><small>Check-in code</small><span class="code">${esc(s.my_booking.code)}</span></div>`;
+    if (!s.started) act = `<button class="btn" data-act="cancel" data-id="${id}">Cancel booking</button>`;
+  } else if (s.waitlist_position) {
+    state = `<span class="state warn">You are ${ordinal(s.waitlist_position)} in line</span>`;
+    act = `<button class="btn" data-act="leave" data-id="${id}">Leave waitlist</button>`;
+  } else if (s.started) state = '<span class="state">In progress</span>';
+  else if (full) { state = `<span class="state">Full</span> <span class="sub">${s.waitlist_size} waiting</span>`; act = `<button class="btn" data-act="waitlist" data-id="${id}">Join waitlist</button>`; }
+  else { state = `<span class="state ${s.seats_left <= 3 ? 'warn' : ''}">${s.seats_left <= 3 ? 'Only ' : ''}${s.seats_left} ${s.seats_left === 1 ? 'mat' : 'mats'} left</span>`; act = `<button class="btn primary" data-act="book" data-id="${id}">Book a mat</button>`; }
+  return `<article class="row" aria-label="${esc(dayName(s.date))} at ${hourLabel(s.hour)}">
+    <div class="time">${hourLabel(s.hour)}<small>1 hour</small></div>
+    <div><div class="mats" aria-hidden="true">${mats}</div><div>${state}</div>${extra}<p class="err" role="alert">${esc(flash[id] || '')}</p></div>
+    <div class="act">${act}</div></article>`;
+}
+async function onSessionAction(e) {
+  const btn = e.target.closest('button[data-act]'); if (!btn) return;
+  const id = Number(btn.dataset.id), act = btn.dataset.act, s = sessions.find((x) => x.id === id); if (!s) return;
+  if (act === 'cancel' && !s.my_booking?.id) return;      // still a placeholder; wait for the server
+  const snap = JSON.parse(JSON.stringify(s)); flash[id] = ''; pending++; btn.disabled = true;
+  // Optimistic: show the result now, roll back if the server says no.
+  if (act === 'book') { s.seats_left--; s.my_booking = { id: 0, code: '······' }; }
+  if (act === 'cancel') { s.seats_left++; s.my_booking = null; }
+  if (act === 'waitlist') { s.waitlist_size++; s.waitlist_position = s.waitlist_size; }
+  if (act === 'leave') { s.waitlist_size--; s.waitlist_position = null; }
+  drawSessions();
+  try {
+    if (act === 'book') { const d = await api(`/sessions/${id}/bookings`, 'POST'); toast(`Booked. Your code is ${d.booking.code}`); }
+    if (act === 'cancel') { await api(`/bookings/${snap.my_booking.id}`, 'DELETE'); toast('Booking cancelled'); }
+    if (act === 'waitlist') { await api(`/sessions/${id}/waitlist`, 'POST'); toast('You joined the waitlist'); }
+    if (act === 'leave') { await api(`/sessions/${id}/waitlist`, 'DELETE'); toast('You left the waitlist'); }
+  } catch (err) { Object.assign(s, snap); flash[id] = err.message; toast(err.message, true); }
+  finally { pending--; }
+  await loadSessions(true);
+}
+
+let mine = { bookings: [], waitlist: [] }, mState = 'loading', mErr = '';
+function bookingsPage() {
+  shell('<div class="head"><h1>My bookings</h1><p>Show your code to the staff at the door. Waitlist spots turn into bookings automatically.</p></div><div id="list" aria-live="polite"></div>', '/bookings');
+  $('#list').onclick = async (e) => {
+    const b = e.target.closest('button[data-act]'); if (!b) return;
+    pending++; b.disabled = true;
+    try { b.dataset.act === 'cancel' ? await api(`/bookings/${b.dataset.id}`, 'DELETE') : await api(`/sessions/${b.dataset.id}/waitlist`, 'DELETE'); toast(b.dataset.act === 'cancel' ? 'Booking cancelled' : 'You left the waitlist'); }
+    catch (err) { toast(err.message, true); }
+    finally { pending--; }
+    loadMine(true);
+  };
+  loadMine(); startPolling(() => loadMine(true));
+}
+async function loadMine(quiet) {
+  if (!quiet) { mState = 'loading'; drawMine(); }
+  try { mine = await api('/bookings/mine'); mState = 'ok'; } catch (e) { if (!quiet || mState !== 'ok') { mState = 'error'; mErr = e.message; } }
+  drawMine();
+}
+function drawMine() {
+  const list = $('#list'); if (!list) return;
+  if (mState === 'loading') return void (list.innerHTML = skeleton());
+  if (mState === 'error') { list.innerHTML = notice('Could not load your bookings', mErr, true); return void ($('#retry').onclick = () => loadMine()); }
+  const now = Date.now(), up = mine.bookings.filter((b) => b.status === 'confirmed' && b.starts_at + 3600000 > now), past = mine.bookings.filter((b) => !up.includes(b));
+  if (!up.length && !mine.waitlist.length && !past.length) return void (list.innerHTML = notice('Nothing booked yet', 'Pick a session and it will show up here with its check-in code.') + '<p style="text-align:center;margin-top:1rem'><a class="btn primary" href="#/sessions">Browse sessions</a></p>');
+  const stub = (b, can) => `<article class="stub ${b.status === 'cancelled' || b.checked_in_at ? 'dim' : ''}"><div><h3>${esc(dayName(b.date))}, ${hourLabel(b.hour)}</h3>
+    ${b.status === 'cancelled' ? '<span class="pill bad">Cancelled</span>' : b.checked_in_at ? '<span class="pill ok">Checked in</span>' : `<div class="sub">Check-in code</div><div class="code">${esc(b.code)}</div>`}</div>
+    ${can && b.starts_at > now ? `<button class="btn" data-act="cancel" data-id="${b.id}">Cancel</button>` : ''}</article>`;
+  list.innerHTML = `<h2 class="day-label">Upcoming</h2>${up.map((b) => stub(b, true)).join('') || '<p class="sub">No upcoming bookings.</p>'}
+    <h2 class="day-label">Waitlist</h2>${mine.waitlist.map((w) => `<article class="stub"><div><h3>${esc(dayName(w.date))}, ${hourLabel(w.hour)}</h3><span class="pill warn">${ordinal(w.position)} in line</span></div><button class="btn" data-act="leave" data-id="${w.session_id}">Leave waitlist</button></article>`).join('') || '<p class="sub">You are not on any waitlist.</p>'}
+    ${past.length ? `<h2 class="day-label">History</h2>${past.map((b) => stub(b, false)).join('')}` : ''}`;
+}
+
+let adminSel = '';
+async function adminPage() {
+  shell(`<div class="head"><h1>Admin</h1><p>Create sessions, see who is booked, and check members in at the door.</p></div>
+    <div class="grid2">
+      <section class="panel" aria-labelledby="h1a"><h2 id="h1a">Create a session</h2>
+        <form id="create" novalidate><div class="two">
+          <div><label for="c-date">Date</label><input id="c-date" type="date" aria-describedby="c-date-e"><p class="field-err" id="c-date-e"></p></div>
+          <div><label for="c-hour">Start hour (0 to 23)</label><input id="c-hour" type="number" min="0" max="23" inputmode="numeric" aria-describedby="c-hour-e"><p class="field-err" id="c-hour-e"></p></div></div>
+          <p class="sub">Sessions last one hour and hold 20 people.</p>
+          <button class="btn primary" id="c-btn" style="margin-top:.75rem">Create session</button><p class="field-err" id="c-msg" role="alert"></p></form></section>
+      <section class="panel" aria-labelledby="h2a"><h2 id="h2a">Check a member in</h2>
+        <form id="check" novalidate><label for="code">Booking code</label><input id="code" class="big-code" maxlength="6" autocomplete="off" autocapitalize="characters" spellcheck="false" aria-describedby="code-e"><p class="field-err" id="code-e"></p>
+          <button class="btn primary" id="k-btn" style="width:100%">Check in</button></form><div id="k-res" role="alert"></div>${DEMO ? '<p class="sub" id="demo-hint" style="margin-top:.75rem"></p>' : ''}</section></div>
+    <section class="panel" aria-labelledby="h3a"><h2 id="h3a">Session bookings</h2><label for="pick">Session</label><select id="pick"><option>Loading…</option></select><div id="bk" style="margin-top:1rem" aria-live="polite"></div></section>`, '/admin');
+  $('#create').onsubmit = createSession; $('#check').onsubmit = checkIn;
+  $('#pick').onchange = (e) => { adminSel = e.target.value; loadBookings(); };
+  await loadAdminSessions(); startPolling(() => loadBookings(true));
+}
+async function loadAdminSessions() {
+  const pick = $('#pick');
+  try {
+    const list = (await api('/sessions')).sessions;
+    pick.innerHTML = list.length ? list.map((s) => `<option value="${s.id}">${esc(shortDate(s.date))}, ${hourLabel(s.hour)}${s.started ? ' (in progress)' : ''}</option>`).join('') : '<option value="">No sessions yet</option>';
+    if (!list.some((s) => String(s.id) === adminSel)) adminSel = list[0]?.id ?? ''; pick.value = adminSel; loadBookings();
+  } catch (e) { pick.innerHTML = '<option value="">Could not load</option>'; $('#bk').innerHTML = notice('Could not load sessions', e.message); }
+}
+async function loadBookings(quiet) {
+  const box = $('#bk'); if (!box) return;
+  if (!adminSel) return void (box.innerHTML = notice('No session selected', 'Create a session to start taking bookings.'));
+  if (!quiet) box.innerHTML = skeleton();
+  try {
+    const d = await api(`/admin/sessions/${adminSel}/bookings`), act = d.bookings.filter((b) => b.status === 'confirmed'), present = act.filter((b) => b.checked_in_at).length;
+    box.innerHTML = d.bookings.length ? `<p class="sub" style="margin-bottom:.5rem"><b>${present}</b> of ${act.length} present, ${d.session.seats_left} mats free, ${d.session.waitlist_size} waiting.</p>
+      <div class="table-wrap"><table><caption class="sr">Bookings for the selected session</caption><thead><tr><th>Member</th><th>Code</th><th>Status</th></tr></thead><tbody>${d.bookings.map((b) =>
+      `<tr><td>${esc(b.name)}<div class="sub">${esc(b.email)}</div></td><td><span class="code">${esc(b.code)}</span></td><td><span class="pill ${b.status === 'cancelled' ? 'bad' : b.checked_in_at ? 'ok' : ''}">${b.status === 'cancelled' ? 'Cancelled' : b.checked_in_at ? 'Present' : 'Not arrived'}</span></td></tr>`).join('')}</tbody></table></div>`
+      : notice('No bookings yet', 'Nobody has booked this session.');
+    const hint = $('#demo-hint'); if (hint) { const c = d.bookings.find((x) => x.status === 'confirmed' && !x.checked_in_at); hint.textContent = d.session.started && c ? `Demo tip: this session is live. Try code ${c.code}.` : 'Demo tip: choose the "(in progress)" session to find a code that works right now.'; }
+  } catch (e) { if (!quiet) box.innerHTML = notice('Could not load bookings', e.message); }
+}
+async function createSession(ev) {
+  ev.preventDefault();
+  const date = $('#c-date').value, raw = $('#c-hour').value, hour = Number(raw), errs = {};
+  if (!date) errs.date = 'Choose a date.'; if (raw === '' || !Number.isInteger(hour) || hour < 0 || hour > 23) errs.hour = 'Enter a whole hour from 0 to 23.';
+  for (const f of ['date', 'hour']) { $('#c-' + f + '-e').textContent = errs[f] ? 'Problem: ' + errs[f] : ''; $('#c-' + f).setAttribute('aria-invalid', !!errs[f]); }
+  $('#c-msg').textContent = ''; if (Object.keys(errs).length) return;
+  $('#c-btn').disabled = true;
+  try { await api('/sessions', 'POST', { date, hour, capacity: 20 }); toast('Session created'); await loadAdminSessions(); }
+  catch (e) { $('#c-msg').textContent = 'Problem: ' + e.message; }
+  finally { $('#c-btn').disabled = false; }
+}
+async function checkIn(ev) {
+  ev.preventDefault();
+  const code = $('#code').value.trim().toUpperCase(), res = $('#k-res'), bad = !/^[A-Z0-9]{6}$/.test(code);
+  res.innerHTML = ''; $('#code-e').textContent = bad ? 'Problem: codes have 6 letters or digits.' : ''; $('#code').setAttribute('aria-invalid', bad); if (bad) return;
+  $('#k-btn').disabled = true;
+  try {
+    const d = await api('/admin/checkin', 'POST', { code });
+    res.innerHTML = `<div class="result ok"><b>${esc(d.member.name)} is present</b><div>${esc(d.member.email)} · ${esc(shortDate(d.session.date))}, ${hourLabel(d.session.hour)}</div></div>`;
+    $('#code').value = ''; loadBookings(true);
+  } catch (e) { res.innerHTML = `<div class="result bad">${esc(e.message)}</div>`; }
+  finally { $('#k-btn').disabled = false; }
+}
+router();
+</script>
+</body>
+</html>
