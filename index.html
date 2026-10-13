@@ -3,7 +3,8 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Twenty · Preview</title>
+<meta name="description" content="Twenty - Hourly gym booking preview. Reserve your mat, get your code, and check in.">
+<title>Twenty · Gym Session Booking</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700&family=Instrument+Sans:wght@400;500;600&display=swap" rel="stylesheet">
@@ -145,20 +146,48 @@ const MOCK = (() => {
     sess(at(2, 7)); sess(at(2, 18)); sess(at(3, 12)); sess(at(4, 8)); sess(at(5, 17));
     return s;
   }
-  const load = () => { try { const x = JSON.parse(localStorage.getItem(KEY)); if (x && x.day === ymdL(Date.now())) return x; } catch {} return seed(); };
+  const ensureLiveSession = () => {
+    const now = Date.now();
+    const curHour = new Date(); curHour.setMinutes(0, 0, 0, 0);
+    const curTime = curHour.getTime();
+    if (!db.sessions.some((s) => s.starts_at <= now && now < s.starts_at + H)) {
+      const nextId = db.sessions.reduce((m, s) => Math.max(m, s.id || 0), 0) + 1;
+      const live = { id: nextId, starts_at: curTime, date: ymdL(curTime), hour: curHour.getHours(), capacity: 20 };
+      db.sessions.push(live);
+      const regularUsers = db.users.filter((u) => u.role !== 'admin');
+      regularUsers.slice(0, 8).forEach((u) => {
+        const nextBId = db.bookings.reduce((m, b) => Math.max(m, b.id || 0), 0) + 1;
+        db.bookings.push({ id: nextBId, session_id: live.id, user_id: u.id, status: 'confirmed', code: code(), checked_in_at: null });
+      });
+      save();
+    }
+  };
+  const load = () => {
+    try {
+      const x = JSON.parse(localStorage.getItem(KEY));
+      if (x && x.day === ymdL(Date.now())) { db = x; ensureLiveSession(); return db; }
+    } catch {}
+    db = seed();
+    save();
+    return db;
+  };
   const save = () => localStorage.setItem(KEY, JSON.stringify(db));
   const err = (status, code_, message, details) => { throw new ApiError({ code: code_, message, details }, status); };
   const seats = (id) => db.bookings.filter((b) => b.session_id === id && b.status === 'confirmed').length;
   const view = (s, uid) => {
     const mine = db.bookings.find((b) => b.session_id === s.id && b.user_id === uid && b.status === 'confirmed');
     const wl = db.waitlist.filter((w) => w.session_id === s.id), idx = wl.findIndex((w) => w.user_id === uid);
-    return { id: s.id, date: s.date, hour: s.hour, starts_at: s.starts_at, capacity: s.capacity, seats_left: s.capacity - seats(s.id), started: s.starts_at <= Date.now(),
+    const now = Date.now();
+    const isStarted = s.starts_at <= now && now < s.starts_at + H;
+    const isEnded = s.starts_at + H <= now;
+    return { id: s.id, date: s.date, hour: s.hour, starts_at: s.starts_at, capacity: s.capacity, seats_left: s.capacity - seats(s.id), started: isStarted, ended: isEnded,
       my_booking: mine ? { id: mine.id, code: mine.code } : null, waitlist_position: idx >= 0 ? idx + 1 : null, waitlist_size: wl.length };
   };
-  const promote = (s) => { while (s.starts_at > Date.now() && seats(s.id) < s.capacity) { const w = db.waitlist.find((x) => x.session_id === s.id); if (!w) break; db.waitlist = db.waitlist.filter((x) => x !== w); db.bookings.push({ id: db.bookings.length + 1, session_id: s.id, user_id: w.user_id, status: 'confirmed', code: code(), checked_in_at: null }); } };
+  const promote = (s) => { while (s.starts_at > Date.now() && seats(s.id) < s.capacity) { const w = db.waitlist.find((x) => x.session_id === s.id); if (!w) break; db.waitlist = db.waitlist.filter((x) => x !== w); const nextBId = db.bookings.reduce((m, b) => Math.max(m, b.id || 0), 0) + 1; db.bookings.push({ id: nextBId, session_id: s.id, user_id: w.user_id, status: 'confirmed', code: code(), checked_in_at: null }); } };
   return async function (path, method, body) {
     await new Promise((r) => setTimeout(r, 350));
     db = load();
+    let match;
     const [p, qs] = path.split('?'), q = new URLSearchParams(qs || ''), m = (re) => p.match(re);
     if (p === '/auth/login') {
       const u = db.users.find((x) => x.email === (body.email || '').toLowerCase());
@@ -175,30 +204,33 @@ const MOCK = (() => {
     const admin = () => { if (user.role !== 'admin') err(403, 'forbidden', 'Admins only.'); };
     let r;
     if (p === '/sessions' && method === 'GET') {
-      const list = db.sessions.filter((s) => (q.get('date') ? s.date === q.get('date') : s.starts_at + H > Date.now())).sort((a, b) => a.starts_at - b.starts_at);
+      const list = db.sessions.filter((s) => (q.get('all') ? true : q.get('date') ? s.date === q.get('date') : s.starts_at + H > Date.now())).sort((a, b) => a.starts_at - b.starts_at);
       r = { sessions: list.map((s) => view(s, user.id)) };
     } else if (p === '/sessions' && method === 'POST') {
       admin(); const t = new Date(body.date + 'T00:00:00'); t.setHours(body.hour); const ts = t.getTime();
       if (ts <= Date.now()) err(422, 'validation_error', 'Session must start in the future.');
       if (db.sessions.some((s) => s.starts_at === ts)) err(409, 'slot_taken', 'A session already starts at that time.');
-      const x = { id: db.sessions.length + 1, starts_at: ts, date: ymdL(ts), hour: body.hour, capacity: 20 }; db.sessions.push(x); r = { session: x };
-    } else if ((x = m(/^\/sessions\/(\d+)\/bookings$/))) {
-      const s = db.sessions.find((y) => y.id === +x[1]); if (!s) err(404, 'not_found', 'Session not found.');
-      if (s.starts_at <= Date.now()) err(409, 'session_started', 'This session has already started.');
+      const nextId = db.sessions.reduce((m, s) => Math.max(m, s.id || 0), 0) + 1;
+      const sessObj = { id: nextId, starts_at: ts, date: ymdL(ts), hour: body.hour, capacity: 20 }; db.sessions.push(sessObj); r = { session: sessObj };
+    } else if ((match = m(/^\/sessions\/(\d+)\/bookings$/)) && method === 'POST') {
+      const s = db.sessions.find((y) => y.id === +match[1]); if (!s) err(404, 'not_found', 'Session not found.');
+      if (s.starts_at <= Date.now()) err(409, 'session_started', 'This session has already started or ended.');
       if (db.bookings.some((b) => b.session_id === s.id && b.user_id === user.id && b.status === 'confirmed')) err(409, 'already_booked', 'You already have a booking for this session.');
       if (seats(s.id) >= s.capacity) err(409, 'session_full', 'This session is full. Someone just took the last mat.');
-      const b = { id: db.bookings.length + 1, session_id: s.id, user_id: user.id, status: 'confirmed', code: code(), checked_in_at: null };
+      const nextBId = db.bookings.reduce((m, b) => Math.max(m, b.id || 0), 0) + 1;
+      const b = { id: nextBId, session_id: s.id, user_id: user.id, status: 'confirmed', code: code(), checked_in_at: null };
       db.bookings.push(b); db.waitlist = db.waitlist.filter((w) => !(w.session_id === s.id && w.user_id === user.id)); r = { booking: b };
-    } else if ((x = m(/^\/sessions\/(\d+)\/waitlist$/))) {
-      const s = db.sessions.find((y) => y.id === +x[1]); if (!s) err(404, 'not_found', 'Session not found.');
+    } else if ((match = m(/^\/sessions\/(\d+)\/waitlist$/))) {
+      const s = db.sessions.find((y) => y.id === +match[1]); if (!s) err(404, 'not_found', 'Session not found.');
       const has = db.waitlist.find((w) => w.session_id === s.id && w.user_id === user.id);
       if (method === 'POST') {
+        if (s.starts_at <= Date.now()) err(409, 'session_started', 'This session has already started or ended.');
         if (seats(s.id) < s.capacity) err(409, 'seats_available', 'Mats are free, book one instead.');
         if (has) err(409, 'already_waitlisted', 'You are already on the waitlist.');
         db.waitlist.push({ id: Date.now(), session_id: s.id, user_id: user.id }); r = { session: view(s, user.id) };
       } else { if (!has) err(404, 'not_found', 'Waitlist entry not found.'); db.waitlist = db.waitlist.filter((w) => w !== has); r = { left: true }; }
-    } else if ((x = m(/^\/bookings\/(\d+)$/)) && method === 'DELETE') {
-      const b = db.bookings.find((y) => y.id === +x[1] && y.user_id === user.id); if (!b) err(404, 'not_found', 'Booking not found.');
+    } else if ((match = m(/^\/bookings\/(\d+)$/)) && method === 'DELETE') {
+      const b = db.bookings.find((y) => y.id === +match[1] && y.user_id === user.id); if (!b) err(404, 'not_found', 'Booking not found.');
       const s = db.sessions.find((y) => y.id === b.session_id);
       if (b.status === 'cancelled') err(409, 'already_cancelled', 'Booking is already cancelled.');
       if (s.starts_at <= Date.now()) err(409, 'session_started', 'You cannot cancel after the session has started.');
@@ -207,8 +239,8 @@ const MOCK = (() => {
       const j = (b) => { const s = db.sessions.find((y) => y.id === b.session_id); return { id: b.id, code: b.code, status: b.status, checked_in_at: b.checked_in_at, session_id: s.id, date: s.date, hour: s.hour, starts_at: s.starts_at }; };
       r = { bookings: db.bookings.filter((b) => b.user_id === user.id).map(j).sort((a, b) => b.starts_at - a.starts_at),
         waitlist: db.waitlist.filter((w) => w.user_id === user.id).map((w) => { const s = db.sessions.find((y) => y.id === w.session_id); return { session_id: s.id, date: s.date, hour: s.hour, starts_at: s.starts_at, position: db.waitlist.filter((z) => z.session_id === s.id).findIndex((z) => z === w) + 1 }; }) };
-    } else if ((x = m(/^\/admin\/sessions\/(\d+)\/bookings$/))) {
-      admin(); const s = db.sessions.find((y) => y.id === +x[1]); if (!s) err(404, 'not_found', 'Session not found.');
+    } else if ((match = m(/^\/admin\/sessions\/(\d+)\/bookings$/))) {
+      admin(); const s = db.sessions.find((y) => y.id === +match[1]); if (!s) err(404, 'not_found', 'Session not found.');
       r = { session: view(s, 0), bookings: db.bookings.filter((b) => b.session_id === s.id).map((b) => { const u = db.users.find((z) => z.id === b.user_id); return { id: b.id, status: b.status, code: b.code, checked_in_at: b.checked_in_at, name: u.name, email: u.email }; }) };
     } else if (p === '/admin/checkin') {
       admin(); const b = db.bookings.find((y) => y.code === String(body.code).toUpperCase()); if (!b) err(404, 'not_found', 'No booking has that code.');
@@ -221,7 +253,6 @@ const MOCK = (() => {
     save(); return r;
   };
 })();
-let x;
 const request = (path, method, body) => MOCK(path, method, body);
 /*API_END*/
 
@@ -230,7 +261,7 @@ async function api(path, method = 'GET', body) {
   catch (e) { if (e.status === 401 && token) logout(); throw e; }
 }
 function setAuth(d) { token = d.token; me = d.user; localStorage.setItem('token', token); localStorage.setItem('me', JSON.stringify(me)); }
-function logout() { token = null; me = null; localStorage.removeItem('token'); localStorage.removeItem('me'); location.hash = '#/login'; }
+function logout() { token = null; me = null; localStorage.removeItem('token'); localStorage.removeItem('me'); if (location.hash === '#/login') router(); else location.hash = '#/login'; }
 function toast(msg, bad) {
   const t = document.createElement('div'); t.className = 't' + (bad ? ' bad' : ''); t.textContent = msg;
   $('#toast').append(t); setTimeout(() => t.remove(), 4000);
@@ -255,8 +286,8 @@ function shell(inner, path) {
   const link = (p, t) => `<a href="#${p}" ${path === p ? 'aria-current="page"' : ''}>${t}</a>`;
   app.innerHTML = `<header class="top"><div class="top-in">
     <a class="brand" href="#/sessions">${logo()}twenty</a>
-    <nav class="nav" aria-label="Main">${link('/sessions', 'Sessions')}${link('/bookings', 'My bookings')}${me.role === 'admin' ? link('/admin', 'Admin') : ''}
-    <span class="who">${esc(me.name)}</span><button class="btn quiet sm" id="logout">Log out</button></nav></div></header>
+    <nav class="nav" aria-label="Main">${link('/sessions', 'Sessions')}${link('/bookings', 'My bookings')}${me?.role === 'admin' ? link('/admin', 'Admin') : ''}
+    <span class="who">${esc(me?.name || 'Member')}</span><button class="btn quiet sm" id="logout">Log out</button></nav></div></header>
     <main id="main" tabindex="-1">${inner}</main>`;
   $('#logout').onclick = logout;
 }
@@ -267,7 +298,7 @@ function router() {
   const path = location.hash.slice(1) || '/sessions';
   const r = ROUTES[path];
   if (!r) return void (location.hash = '#/sessions');
-  if (!r.public && !token) return void (location.hash = '#/login');   // client guards; the server enforces them again
+  if (!r.public && (!token || !me)) return void (location.hash = '#/login');   // client guards; the server enforces them again
   if (r.public && token) return void (location.hash = '#/sessions');
   if (r.admin && me?.role !== 'admin') return void (location.hash = '#/sessions');
   ({ '/login': loginPage, '/sessions': sessionsPage, '/bookings': bookingsPage, '/admin': adminPage })[path]();
@@ -285,7 +316,8 @@ function loginPage() {
   };
   const submit = async (payload) => {
     const btn = $('#submit'); if (btn) btn.disabled = true;
-    try { setAuth(await api(mode === 'register' ? '/auth/register' : '/auth/login', 'POST', payload)); location.hash = '#/sessions'; }
+    showErr({}); $('#form-e').textContent = '';
+    try { setAuth(await api(mode === 'register' ? '/auth/register' : '/auth/login', 'POST', payload)); if (location.hash === '#/sessions') router(); else location.hash = '#/sessions'; }
     catch (e) { showErr(e.details || {}); $('#form-e').textContent = 'Problem: ' + e.message; }
     finally { if (btn) btn.disabled = false; }
   };
@@ -366,11 +398,12 @@ function sessionRow(s) {
   if (s.my_booking) {
     state = '<span class="state ok">You are in</span>';
     extra = `<div class="ticket"><small>Check-in code</small><span class="code">${esc(s.my_booking.code)}</span></div>`;
-    if (!s.started) act = `<button class="btn" data-act="cancel" data-id="${id}">Cancel booking</button>`;
+    if (!s.started && !s.ended) act = `<button class="btn" data-act="cancel" data-id="${id}">Cancel booking</button>`;
   } else if (s.waitlist_position) {
     state = `<span class="state warn">You are ${ordinal(s.waitlist_position)} in line</span>`;
     act = `<button class="btn" data-act="leave" data-id="${id}">Leave waitlist</button>`;
-  } else if (s.started) state = '<span class="state">In progress</span>';
+  } else if (s.started) state = '<span class="state warn">In progress</span>';
+  else if (s.ended) state = '<span class="state">Ended</span>';
   else if (full) { state = `<span class="state">Full</span> <span class="sub">${s.waitlist_size} waiting</span>`; act = `<button class="btn" data-act="waitlist" data-id="${id}">Join waitlist</button>`; }
   else { state = `<span class="state ${s.seats_left <= 3 ? 'warn' : ''}">${s.seats_left <= 3 ? 'Only ' : ''}${s.seats_left} ${s.seats_left === 1 ? 'mat' : 'mats'} left</span>`; act = `<button class="btn primary" data-act="book" data-id="${id}">Book a mat</button>`; }
   return `<article class="row" aria-label="${esc(dayName(s.date))} at ${hourLabel(s.hour)}">
@@ -422,7 +455,7 @@ function drawMine() {
   if (mState === 'loading') return void (list.innerHTML = skeleton());
   if (mState === 'error') { list.innerHTML = notice('Could not load your bookings', mErr, true); return void ($('#retry').onclick = () => loadMine()); }
   const now = Date.now(), up = mine.bookings.filter((b) => b.status === 'confirmed' && b.starts_at + 3600000 > now), past = mine.bookings.filter((b) => !up.includes(b));
-  if (!up.length && !mine.waitlist.length && !past.length) return void (list.innerHTML = notice('Nothing booked yet', 'Pick a session and it will show up here with its check-in code.') + '<p style="text-align:center;margin-top:1rem'><a class="btn primary" href="#/sessions">Browse sessions</a></p>');
+  if (!up.length && !mine.waitlist.length && !past.length) return void (list.innerHTML = notice('Nothing booked yet', 'Pick a session and it will show up here with its check-in code.') + '<p style="text-align:center;margin-top:1rem"><a class="btn primary" href="#/sessions">Browse sessions</a></p>');
   const stub = (b, can) => `<article class="stub ${b.status === 'cancelled' || b.checked_in_at ? 'dim' : ''}"><div><h3>${esc(dayName(b.date))}, ${hourLabel(b.hour)}</h3>
     ${b.status === 'cancelled' ? '<span class="pill bad">Cancelled</span>' : b.checked_in_at ? '<span class="pill ok">Checked in</span>' : `<div class="sub">Check-in code</div><div class="code">${esc(b.code)}</div>`}</div>
     ${can && b.starts_at > now ? `<button class="btn" data-act="cancel" data-id="${b.id}">Cancel</button>` : ''}</article>`;
@@ -437,8 +470,8 @@ async function adminPage() {
     <div class="grid2">
       <section class="panel" aria-labelledby="h1a"><h2 id="h1a">Create a session</h2>
         <form id="create" novalidate><div class="two">
-          <div><label for="c-date">Date</label><input id="c-date" type="date" aria-describedby="c-date-e"><p class="field-err" id="c-date-e"></p></div>
-          <div><label for="c-hour">Start hour (0 to 23)</label><input id="c-hour" type="number" min="0" max="23" inputmode="numeric" aria-describedby="c-hour-e"><p class="field-err" id="c-hour-e"></p></div></div>
+          <div><label for="c-date">Date</label><input id="c-date" type="date" value="${ymd(new Date())}" min="${ymd(new Date())}" aria-describedby="c-date-e"><p class="field-err" id="c-date-e"></p></div>
+          <div><label for="c-hour">Start hour (0 to 23)</label><input id="c-hour" type="number" min="0" max="23" value="${(new Date().getHours() + 1) % 24}" inputmode="numeric" aria-describedby="c-hour-e"><p class="field-err" id="c-hour-e"></p></div></div>
           <p class="sub">Sessions last one hour and hold 20 people.</p>
           <button class="btn primary" id="c-btn" style="margin-top:.75rem">Create session</button><p class="field-err" id="c-msg" role="alert"></p></form></section>
       <section class="panel" aria-labelledby="h2a"><h2 id="h2a">Check a member in</h2>
@@ -452,8 +485,8 @@ async function adminPage() {
 async function loadAdminSessions() {
   const pick = $('#pick');
   try {
-    const list = (await api('/sessions')).sessions;
-    pick.innerHTML = list.length ? list.map((s) => `<option value="${s.id}">${esc(shortDate(s.date))}, ${hourLabel(s.hour)}${s.started ? ' (in progress)' : ''}</option>`).join('') : '<option value="">No sessions yet</option>';
+    const list = (await api('/sessions?all=1')).sessions;
+    pick.innerHTML = list.length ? list.map((s) => `<option value="${s.id}">${esc(shortDate(s.date))}, ${hourLabel(s.hour)}${s.started ? ' (in progress)' : s.ended ? ' (ended)' : ''}</option>`).join('') : '<option value="">No sessions yet</option>';
     if (!list.some((s) => String(s.id) === adminSel)) adminSel = list[0]?.id ?? ''; pick.value = adminSel; loadBookings();
   } catch (e) { pick.innerHTML = '<option value="">Could not load</option>'; $('#bk').innerHTML = notice('Could not load sessions', e.message); }
 }
