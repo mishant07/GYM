@@ -1,9 +1,22 @@
-FROM nginx:alpine
+FROM node:20-alpine
 
-# Copy static site files to Nginx web root
-COPY . /usr/share/nginx/html
+WORKDIR /app
 
-# Expose port 80 for Render / Docker hosting
-EXPOSE 80
+# Install dependencies first for Docker layer caching
+COPY package*.json ./
+RUN npm ci --omit=dev
 
-CMD ["nginx", "-g", "daemon off;"]
+# Copy application source code
+COPY . .
+
+# Environment variables
+ENV NODE_ENV=production
+ENV PORT=3000
+ENV DB_PATH=/app/data/gym.db
+
+# Ensure data directory exists for persistent SQLite database
+RUN mkdir -p /app/data
+
+EXPOSE 3000
+
+CMD ["node", "server.js"]
