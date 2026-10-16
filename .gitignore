@@ -4,6 +4,8 @@ node_modules/
 *.db-journal
 *.db-wal
 *.db-shm
+*.pdf
+generate_pdf.py
 .DS_Store
 dist/
 coverage/
